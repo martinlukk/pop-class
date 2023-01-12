@@ -1,3 +1,7 @@
+# macOS Desktop Services Store:
+.DS_Store
+*.icloud
+
 # History files
 .Rhistory
 .Rapp.history
