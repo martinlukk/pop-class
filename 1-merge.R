@@ -24,10 +24,23 @@ cmp      <- mp_maindataset(version = "2022a")
 # 2. Clean and Merge Data -------------------------------------------------
 populist <-
   populist %>%
-  # Drop parties that are only briefly populist
-  filter(!(populist_end < 2100)) %>%
-  select(populist, farright, ends_with("_id"), -partyfacts_id) %>% 
-  rename(id_manifesto = manifesto_id, id_parlgov = parlgov_id)
+  select(populist, populist_start, populist_end,
+         # farright, farright_start, farright_end,
+         ends_with("_id"), -partyfacts_id) %>% 
+  rename(id_manifesto = manifesto_id,
+         id_parlgov   = parlgov_id) %>% 
+  relocate(starts_with("id")) %>% 
+  # Recode variable start/end values to true calendar years
+  mutate(across(contains(c("start", "end")),
+                ~ case_when(. == 1900 ~ 1989,
+                            . == 2100 ~ 2020,
+                            TRUE      ~ .))) %>% 
+  # Expand time series based on start/end values
+  mutate(year = map2(populist_start, populist_end, seq)) %>% 
+  select(-populist_start, -populist_end) %>% 
+  unnest(cols = year)
+  
+  
 
 parlgov <- 
   parlgov %>%
