@@ -1,8 +1,8 @@
 
 
 ## Program:   1-merge.R
-## Task:      Download PopuList, Parlgov, and CMP data; merge analysis
-##            variables; save new data set.
+## Task:      Download PopuList, V-Party, Parlgov, and CMP data; clean and merge analysis
+##            variables; save new data sets.
 ##
 ## Project:   pop-class
 ## Author:    Martin Lukk / 2023-01-11 (created)
