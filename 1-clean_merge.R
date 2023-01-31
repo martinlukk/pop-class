@@ -1,6 +1,6 @@
 
 
-## Program:   1-merge.R
+## Program:   1-clean_merge.R
 ## Task:      Download PopuList, V-Party, Parlgov, and CMP data; clean and merge analysis
 ##            variables; save new data sets.
 ##
