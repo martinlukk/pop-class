@@ -24,13 +24,37 @@ vparty   <- vdemdata::vparty
 
 
 # 2. Clean and Merge Data -------------------------------------------------
+# Get vector of countries included in Popu-List
+populist_countries <- 
+  populist %>% 
+  select(country_name) %>% 
+  group_by(country_name) %>% 
+  slice_head() %>% 
+  pull()
+
+# Supply missing PartyFacts IDs for select Popu-List parties
+missing_populist_ids <- 
+  tribble(
+    ~party_name_english, ~partyfacts_id,
+    "Croatian Civic Party", 6620,                                                 
+    "Fidesz - Hungarian Civic Alliance", 1691,                                     
+    "Fidesz -- Hungarian Civic Party / Christian Democratic People's Party", 6366,
+    "Southern Action League", 8647,                                                
+    "Enough!", 8182,                                                               
+    "Geneva Citizens' Movement", 8176,                                            
+    "Respect -- The Unity Coalition", 1082        
+  )
+
 populist <-
   populist %>%
+  # Replace missing PartyFacts IDs for some parties coded populist
+  rows_update(., missing_populist_ids, by = "party_name_english") %>% 
   select(populist, populist_start, populist_end,
          # farright, farright_start, farright_end,
-         ends_with("_id"), -partyfacts_id) %>% 
+         ends_with("_id")) %>% 
   rename(id_manifesto = manifesto_id,
-         id_parlgov   = parlgov_id) %>% 
+         id_parlgov   = parlgov_id,
+         id_partyfacts = partyfacts_id) %>% 
   relocate(starts_with("id")) %>% 
   # Recode variable start/end values to true calendar years
   mutate(across(contains(c("start", "end")),
