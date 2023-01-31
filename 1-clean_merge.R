@@ -117,4 +117,4 @@ vparty_test <-
 
 
 # 3. Save data file -------------------------------------------------------
-saveRDS(df, here("data", "output", "01-populist_parlgov.Rds"))
+write_csv(vparty_train, here("data", "output", "01-vparty_train.csv"))
