@@ -98,9 +98,6 @@ vparty_test <-
   relocate(v2paenname, country_name, id_partyfacts, year)
   
 
-# TODO: Figure out how to incorporate time-varying party data from manifestos
-# with time-invariant data from parlgov and populist. Avg manifesto values for
-# each party within popu-list time period?
 # parlgov <- 
 #   parlgov %>%
 #   # Harmonize ID variable
@@ -115,6 +112,8 @@ vparty_test <-
 #          per101:per706) %>% 
 #   rename(id_manifesto = party)
 
+# TODO: Incorporate additional time-varying party data from manifestos
+# and time-invariant data from parlgov.
 
 
 # 3. Save data file -------------------------------------------------------
