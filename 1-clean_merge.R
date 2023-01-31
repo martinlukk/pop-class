@@ -118,3 +118,4 @@ vparty_test <-
 
 # 3. Save data file -------------------------------------------------------
 write_csv(vparty_train, here("data", "output", "01-vparty_train.csv"))
+write_csv(vparty_test,  here("data", "output", "02-vparty_test.csv"))
