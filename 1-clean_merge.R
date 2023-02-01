@@ -42,15 +42,15 @@ missing_populist_ids <-
     "Southern Action League", 8647,                                                
     "Enough!", 8182,                                                               
     "Geneva Citizens' Movement", 8176,                                            
-    "Respect -- The Unity Coalition", 1082        
+    "Respect -- The Unity Coalition", 1082,
+    "Croatian Party of Rights -- Dr. Ante Starcevic", 3706
   )
 
 populist <-
   populist %>%
   # Replace missing PartyFacts IDs for some parties coded populist
   rows_update(., missing_populist_ids, by = "party_name_english") %>% 
-  select(populist, populist_start, populist_end,
-         # farright, farright_start, farright_end,
+  select(farright, farright_start, farright_end,
          ends_with("_id")) %>% 
   rename(id_manifesto = manifesto_id,
          id_parlgov   = parlgov_id,
@@ -62,8 +62,8 @@ populist <-
                             . == 2100 ~ 2020,
                             TRUE      ~ .))) %>% 
   # Expand time series based on start/end values
-  mutate(year = map2(populist_start, populist_end, seq)) %>% 
-  select(-populist_start, -populist_end) %>% 
+  mutate(year = map2(farright_start, farright_end, seq)) %>% 
+  select(-farright_start, -farright_end) %>%
   unnest(cols = year)
 
 vparty <- 
@@ -88,9 +88,9 @@ vparty_train <-
   vparty %>% 
   filter(country_name %in% populist_countries) %>% 
   left_join(., populist, by = c("id_partyfacts", "year"), multiple = "first") %>% 
-  relocate(v2paenname, country_name, id_partyfacts, year, populist) %>% 
-  # Code all parties not featured in Popu-List as "not populist"
-  mutate(populist = replace_na(populist, 0))
+  relocate(v2paenname, country_name, id_partyfacts, year, farright) %>% 
+  # Code all parties not featured in Popu-List as "not farright"
+  mutate(farright = replace_na(farright, 0))
 
 vparty_test <- 
   vparty %>% 
@@ -117,5 +117,5 @@ vparty_test <-
 
 
 # 3. Save data file -------------------------------------------------------
-write_csv(vparty_train, here("data", "output", "01-vparty_train.csv"))
-write_csv(vparty_test,  here("data", "output", "02-vparty_test.csv"))
+write_csv(vparty_train, here("data", "output", "01-vparty_train_fr.csv"))
+write_csv(vparty_test,  here("data", "output", "02-vparty_test_fr.csv"))
