@@ -5,7 +5,7 @@
 ##            variables; save new data sets.
 ##
 ## Project:   pop-class
-## Author:    Martin Lukk / 2023-01-11 (created)
+## Author:    Sakeef Karim and Martin Lukk / 2023-01-11 (created)
 
 
 # 0. Program Setup --------------------------------------------------------
