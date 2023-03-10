@@ -43,14 +43,20 @@ missing_populist_ids <-
     "Enough!", 8182,                                                               
     "Geneva Citizens' Movement", 8176,                                            
     "Respect -- The Unity Coalition", 1082,
-    "Croatian Party of Rights -- Dr. Ante Starcevic", 3706
+    "Croatian Party of Rights -- Dr. Ante Starcevic", 3706,
+    "Alternative Ecologists", 8645,
+    "Lithuanian Communist Party on the CPSU Platform", 7420,
+    "Aragonese Council", 1564
   )
 
 populist <-
   populist %>%
   # Replace missing PartyFacts IDs for some parties coded populist
   rows_update(., missing_populist_ids, by = "party_name_english") %>% 
+  # Drop duplicate entries with same PartyFacts ID (and remaining NAs)
+  distinct(partyfacts_id, .keep_all = T) %>% 
   select(farright, farright_start, farright_end,
+         farleft, farleft_start, farleft_end,
          ends_with("_id")) %>% 
   rename(id_manifesto = manifesto_id,
          id_parlgov   = parlgov_id,
@@ -62,14 +68,19 @@ populist <-
                             . == 2100 ~ 2020,
                             TRUE      ~ .))) %>% 
   # Expand time series based on start/end values
-  mutate(year = map2(farright_start, farright_end, seq)) %>% 
-  select(-farright_start, -farright_end) %>%
+  mutate(
+    year = if_else(farright == 1, map2(farright_start, farright_end, seq), NA),
+    year = if_else(farleft  == 1 , map2(farleft_start, farleft_end, seq),  year)
+  ) %>% 
+  filter(!(farright == 0 & farleft == 0)) %>% 
+  select(-ends_with("start"), -ends_with("end")) %>% 
   unnest(cols = year)
 
 vparty <- 
   vparty %>% 
   select(v2paenname, v2pashname,
          pf_party_id, country_name, e_regionpol, year,
+         v2pavote, v2panumbseat,
          v2xpa_antiplural, v2xpa_popul, # Note: These variables are indices based on subsequent ones
          v2paanteli, v2papeople, v2paopresp, v2paplur, v2paminor, v2paviol,
          v2paimmig, v2palgbt, v2paculsup, v2parelig, v2pagender, v2pawomlab,
@@ -84,19 +95,35 @@ vparty <-
   filter(year >= 1989, !is.na(id_partyfacts)) %>% 
   arrange(country_name, id_partyfacts, year)
 
-vparty_train <-
+# Identify VParty parties that may not meet Popu-list inclusion criteria (either 1 seat of 2% of votes since 1989)
+vparty_exclude <-   
   vparty %>% 
   filter(country_name %in% populist_countries) %>% 
-  left_join(., populist, by = c("id_partyfacts", "year"), multiple = "first") %>% 
-  relocate(v2paenname, country_name, id_partyfacts, year, farright) %>% 
-  # Code all parties not featured in Popu-List as "not farright"
-  mutate(farright = replace_na(farright, 0))
+  group_by(v2paenname) %>% 
+  summarize(maxvote = max(v2pavote, na.rm = T),
+            maxseat = max(v2panumbseat, na.rm = T)) %>% 
+  filter((maxvote < 2 | is.na(maxvote)) & (maxseat < 1 | is.na(maxseat))) %>%
+  ungroup() %>% 
+  pull(v2paenname)
+
+vparty_train <-
+  vparty %>% 
+  filter(country_name %in% populist_countries,
+         !(v2paenname %in% vparty_exclude)) %>% 
+  left_join(., populist, by = c("id_partyfacts", "year")) %>% 
+  # Code all parties not featured in Popu-List as mainstream
+  mutate(classification = case_when(
+           farright == 1 ~ "farright",
+           farleft  == 1 ~ "farleft",
+           is.na(farright) ~ "mainstream"
+         )) %>% 
+  relocate(v2paenname, classification, country_name, id_partyfacts, year,
+           farright, farleft)
 
 vparty_test <- 
   vparty %>% 
   filter(!country_name %in% populist_countries) %>% 
   relocate(v2paenname, country_name, id_partyfacts, year)
-  
 
 # parlgov <- 
 #   parlgov %>%
@@ -117,5 +144,5 @@ vparty_test <-
 
 
 # 3. Save data file -------------------------------------------------------
-write_csv(vparty_train, here("data", "output", "01-vparty_train_fr.csv"))
-write_csv(vparty_test,  here("data", "output", "02-vparty_test_fr.csv"))
+write_csv(vparty_train, here("data", "output", "01-vparty_train_frfl.csv"))
+write_csv(vparty_test,  here("data", "output", "02-vparty_test_frfl.csv"))
